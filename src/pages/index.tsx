@@ -22,7 +22,10 @@ export const getServerSideProps: GetServerSideProps = async () => {
       id: true,
       title: true,
       content: true,
+    }, orderBy: {
+      id: 'asc'
     }
+
   })
 
   return {
@@ -50,23 +53,36 @@ export default function Home({ notes }: Note) {
 
   async function create(data: FormData) {
     try {
+      if(data.id === "") {
       fetch("/api/create", {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
-        },
-      }).then(() => {
-        if(data.id !== ""){
-          deleteNote(data.id);
+        }})
+        .then(() => {
+          setForm({ title: "", content: "", id: "" });
+          refreshData();
+        });
         }
-        setForm({ title: "", content: "", id: "" });
-        refreshData();
-    });
-    } catch (error) {
-      console.log(error);
+        else{
+          fetch(`/api/note/${data.id}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: {
+              "Content-Type": "application/json",
+              }
+          })
+          .then(() => {
+            setForm({ title: "", content: "", id: "" });
+            refreshData();
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
-  }
+
 
   async function deleteNote(id: string) {
     try {
@@ -83,6 +99,10 @@ export default function Home({ notes }: Note) {
     }
   }
 
+  async function updateNote (note: {id: string, title: string, content: string}) {
+    setForm({ title: note.title, content: note.content, id: note.id });
+  }
+
   const handleSumbit = async (data: FormData) => {
     try {
       await create(data);
@@ -93,13 +113,13 @@ export default function Home({ notes }: Note) {
 
   return (
     <div>
-      <h1 className="text-center font-bold text-2xl mt-4">Notes</h1>
+      <h1 className="text-center font-bold text-2xl mt-4 mb-1">Notes</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSumbit(form);
         }}
-        className="w-auto min-w-[25%] max-w-min mx-auto space-y-6 flex flex-col items-stretch"
+        className="w-4/5 min-w-[25%] max-w-screen-sm mx-auto space-y-6 flex flex-col items-stretch"
       >
         <input
           type="text"
@@ -112,22 +132,28 @@ export default function Home({ notes }: Note) {
           placeholder="Content"
           value={form.content}
           onChange={(e) => setForm({ ...form, content: e.target.value })}
-          className="border-2 rounded border-gray-600 p-1"
+          className="border-2 rounded border-gray-600 p-1 resize-none "
+          maxLength={200}
+          rows={4}
         />
+        <div className="text-right">
+          <span className="text-sm absolute -ml-10 -mt-5 text-gray-400">{form.content.length}/200</span>
+        </div>
+
         <button type="submit" className="bg-blue-500 text-white p-1">
           Add +
         </button>
       </form>
-      <div className="w-auto min-w-[25%] max-w-min mt-20 mx-auto space-y-6 flex flex-col items-stretch">  
+      <div className="w-auto min-w-[25%] max-w-screen-md mt-20 mx-auto space-y-6 flex flex-col items-stretch">  
         <ul>
           {notes.map((note) => (
-            <li key={note.id} className="border-b border-gray-600 p-2">
-              <div className="flex justify-between">
+            <li key={note.id} className="border-b w-full border-gray-600 p-2">
+              <div className="flex justify-between items-center">
                 <div className="flex-1">
                   <h3 className="font-bold">{note.title}</h3>
-                  <p className="text-sm">{note.content}</p>
+                  <p className="text-sm w-full">{note.content}</p>
                 </div>
-                <button onClick={() => setForm({title: note.title, content: note.content, id:note.id})} className="bg-blue-500 px-3 mr-3 text-white rounded">Update</button>
+                <button onClick={() => updateNote(note)} className="bg-blue-500 px-3 mr-3 text-white rounded ">Update</button>
                 <button onClick={() => deleteNote(note.id)} className="bg-red-500 px-3 text-white rounded">X</button>
               </div>
             </li>
