@@ -153,8 +153,8 @@ export default function Home({ notes }: Note) {
                   <h3 className="font-bold">{note.title}</h3>
                   <p className="text-sm w-full">{note.content}</p>
                 </div>
-                <button onClick={() => updateNote(note)} className="bg-blue-500 px-3 mr-3 text-white rounded ">Update</button>
-                <button onClick={() => deleteNote(note.id)} className="bg-red-500 px-3 text-white rounded">X</button>
+                <button onClick={() => updateNote(note)} className="bg-blue-500 px-3 py-1 mr-3 text-white rounded ">Update</button>
+                <button onClick={() => deleteNote(note.id)} className="bg-red-500 px-3 py-1 text-white rounded">X</button>
               </div>
             </li>
           ))}
